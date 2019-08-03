@@ -24,3 +24,4 @@ class Settings:
 
     floor_tile_scores_font_size = 24
     floor_tile_scores_spacing = 8
+    floor_tile_scores_colour = 90, 90, 90

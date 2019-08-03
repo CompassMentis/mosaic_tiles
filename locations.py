@@ -22,6 +22,10 @@ class Location:
     def can_click(self):
         return False
 
+    # @property
+    # def selected(self):
+    #     if isinstance(self, FactoryLocation) and self.player_id == self.game.factory_selected
+
     @property
     def border_colour(self):
         if self.active:
@@ -74,11 +78,17 @@ class FactoryLocation(Location):
 
     @property
     def active(self):
-        return self.game.mode is GameMode.SELECTING_TILE and self.content
+        return self.can_click and self.game.mode is GameMode.SELECTING_TILE
+        # return self.game.mode is GameMode.SELECTING_TILE and self.content
 
     @property
     def can_click(self):
-        return self.active or (self.game.mode is GameMode.SELECTING_TARGET and self.content)
+        if self.selected:
+            return False
+
+        return self.game.mode in [
+            GameMode.SELECTING_TILE, GameMode.SELECTING_TARGET, GameMode.AWAITING_CONFIRMATION
+        ] and self.content
 
 
 class CentreLocation(FactoryLocation):
@@ -123,6 +133,17 @@ class PatternLocation(Location):
         y += self.row * Settings.tile_height * multiplier
         return x, y
 
+    @property
+    def active(self):
+        return self.can_click and self.game.mode is GameMode.SELECTING_TARGET
+
+    @property
+    def can_click(self):
+        if self.selected:
+            return False
+
+        return self.player_id == 0 and self.game.mode in [GameMode.SELECTING_TARGET, GameMode.AWAITING_CONFIRMATION]
+
 
 class WallLocation(PatternLocation):
     def coordinates(self):
@@ -143,6 +164,14 @@ class WallLocation(PatternLocation):
         if self.player_id == 0:
             return self.tile_type.large_transparent_image
         return self.tile_type.small_transparent_image
+
+    @property
+    def active(self):
+        return False
+
+    @property
+    def can_click(self):
+        return False
 
 
 class FloorLocation(Location):
@@ -240,7 +269,7 @@ class Locations:
                     multiplier = 1
                     font = self.game.small_floor_tile_scores_font
                 self.game.canvas.blit(
-                    font.render(str(location.score), True, pygame.Color('gray')),
+                    font.render(str(location.score), True, Settings.floor_tile_scores_colour),
                     (
                         location.rect.x + Settings.floor_tile_scores_spacing * multiplier,
                         location.rect.y + Settings.floor_tile_scores_spacing * multiplier
