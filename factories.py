@@ -12,8 +12,6 @@ class Factory:
         self.is_centre = is_centre
         if self.is_centre:
             self.grid_size = Settings.factory_grid_size
-            # self.grid_columns = Settings.factory_centre_grid_columns
-            # self.grid_rows =
         else:
             self.grid_size = pygame.Rect(2, 2, 0, 0)
 
@@ -57,34 +55,4 @@ class Factory:
         x += column * Settings.tile_width + (column - 1) * Settings.spacing
         y += row * Settings.tile_height + (row - 1) * Settings.spacing
 
-        # dx, dy = {
-        #     0: (0, 0),
-        #     1: (Settings.tile_width + Settings.spacing, 0),
-        #     2: (0, Settings.tile_height + Settings.spacing),
-        #     3: (Settings.tile_width + Settings.spacing, Settings.tile_height + Settings.spacing)
-        # }[slot_number]
-        #
-        # return x + dx, y + dy
         return x, y
-
-    def place_tile(self, tile):
-        tile.location = self
-        self.tiles.append(tile)
-        i = len(self.tiles)
-
-
-    def draw(self):
-        pass
-        # Calculate coordinate of centre_coordinates
-        # Draw circle
-        # Draw 4 tiles, in a grid
-        # Better:
-        #   when creating a factory, calculate centre_coordinates
-        #   and when moving a tile to a factory, calculate location
-        # To facilitate movement
-            # current_location (x/y)
-            # target_location (x/y)
-            # steps_remaining
-            # delta (x/y)
-        # Pieces move in turn
-            # Keep a to_move list

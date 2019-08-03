@@ -22,16 +22,10 @@ class TileType:
         self.small_transparent_image.set_alpha(128)
         self.large_transparent_image = self.large_image.convert()
         self.large_transparent_image.set_alpha(128)
-        # image = pygame.image.load('path/to/my.png').convert()
-        # image.set_alpha(128)
-    # def draw_small(self, canvas, location, transparency):
-    #     pass
 
 class Tile:
     def __init__(self, tile_type):
         self.tile_type = tile_type
-        # self.image = pygame.Surface((Settings.tile_width, Settings.tile_height))
-        # self.image.fill(Settings.tile_colour(tile_pattern))
         self.location = Location.BAG
         self.x = None
         self.y = None
@@ -76,6 +70,7 @@ class Tiles:
 
         return None
 
+# TODO: Clean this up - very messy - initialise & set_mode called twice
 pygame.init()
 pygame.display.set_mode((Settings.screen_width, Settings.screen_height))
 tile_types = [

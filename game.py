@@ -26,15 +26,9 @@ class Game:
     def draw_background(self):
         self.canvas.fill((0, 0, 0))
 
-    # def draw_floor_tile_scores(self):
-    #     for player in self.players:
-    #         for i, score in [-1, -1, -2, -2, -2, -3, -3]:
-    #             x =
-
     def draw(self):
         self.draw_background()
         self.locations.draw()
-        # self.draw_floor_tile_scores()
         pygame.display.flip()
 
     @property
@@ -49,8 +43,6 @@ class Game:
                 if type(i) is not FactoryLocation:
                     continue
                 i.selected = (i.factory_id == location.factory_id and i.content.tile_type == location.content.tile_type)
-                    # i.selected = True
-        # select all tiles of the selected type at this factory or centre
 
     def process_mouse_click(self):
         location = self.clicked_location
