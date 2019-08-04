@@ -6,6 +6,7 @@ from locations import Locations, FactoryLocation, CentreLocation, PatternLocatio
 from buttons import Button
 from enums import GameMode
 from settings import Settings
+from utils import within_rect
 
 
 class Game:
@@ -26,7 +27,7 @@ class Game:
         x, y = Settings.player_area_location
         multiplier = Settings.player_area_multiplier
         x += Settings.pattern_area_width * multiplier
-        x += 3 * Settings.tile_width * multiplier
+        x += 2 * Settings.tile_width * multiplier
         width = 3 * Settings.tile_width * multiplier
         y += (Settings.area_height - Settings.tile_height * 1.9) * multiplier
         height = Settings.tile_height * multiplier
@@ -54,9 +55,19 @@ class Game:
 
         pygame.display.flip()
 
+    # TODO: Move this into buttons.py?
+    def button_clicked(self, x, y):
+        for button in [self.confirmation_button]:
+            if within_rect(x, y, button.rect):
+                return button
+
     @property
     def clicked_location(self):
-        return self.locations.find(*pygame.mouse.get_pos())
+        result = self.locations.find(*pygame.mouse.get_pos())
+        if result is not None:
+            return result
+
+        return self.button_clicked(*pygame.mouse.get_pos())
 
     def select_source_tile(self, location):
         if isinstance(location, CentreLocation):
@@ -79,6 +90,25 @@ class Game:
                 print('selected')
         self.mode = GameMode.AWAITING_CONFIRMATION
 
+    def get_movement_details(self):
+        source = []
+        target = []
+
+        for i in self.locations.all:
+            if i.selected:
+                if isinstance(i, FactoryLocation):
+                    source.append(i)
+                elif isinstance(i, PatternLocation):
+                    target.append(i)
+        return source, target
+
+    def move_pieces(self):
+        source, target = self.get_movement_details()
+        print(source)
+        print(target)
+
+    def confirm_movement(self):
+        self.move_pieces()
 
     def process_mouse_click(self):
         location = self.clicked_location
@@ -92,3 +122,6 @@ class Game:
         if isinstance(location, PatternLocation):
             self.select_target_row(location)
             return
+
+        if location is self.confirmation_button:
+            self.move_pieces()

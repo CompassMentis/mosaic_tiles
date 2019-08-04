@@ -5,6 +5,7 @@ import pygame
 from tiles import tile_types
 from settings import Settings
 from enums import GameMode
+from utils import within_rect
 
 
 class Location:
@@ -250,8 +251,9 @@ class Locations:
             if not location.can_click:
                 continue
             # TODO: Probably proper method of rect to check this
-            if location.rect.x <= x <= location.rect.x + location.rect.width and \
-                    location.rect.y <= y <= location.rect.y + location.rect.height:
+            if within_rect(x, y, location.rect):
+                    # location.rect.x <= x <= location.rect.x + location.rect.width and \
+                    # location.rect.y <= y <= location.rect.y + location.rect.height:
                 return location
         return None
 

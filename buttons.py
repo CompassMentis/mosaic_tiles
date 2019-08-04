@@ -7,6 +7,7 @@ class Button:
         self.rect = pygame.Rect(x, y, width, height)
         self.image = pygame.Surface(self.rect.size)
         self.image.fill(Settings.active_grid_colour)
+        self.can_click = True
 
         spacing = Settings.floor_tile_scores_spacing * Settings.player_area_multiplier
         self.image.blit(
