@@ -2,7 +2,7 @@ import pygame
 
 from players import Player
 from tiles import Tiles
-from locations import Locations, FactoryLocation, CentreLocation, PatternLocation, ButtonLocation
+from locations import Locations, FactoryLocation, CentreLocation, PatternLocation, ButtonLocation, FloorLocation
 from enums import GameMode
 from settings import Settings
 from utils import within_rect
@@ -62,10 +62,15 @@ class Game:
 
     def select_source_tile(self, location):
         self.source = []
-        if isinstance(location, FactoryLocation):
+        if type(location) == FactoryLocation:
             for i in self.locations.all:
                 if type(i) == FactoryLocation:
                     if i.factory_id == location.factory_id and i.content.tile_type == location.content.tile_type:
+                        self.source.append(i)
+        elif type(location) == CentreLocation:
+            for i in self.locations.all:
+                if type(i) == CentreLocation and i.content:
+                    if i.content.tile_type == location.content.tile_type:
                         self.source.append(i)
         self.mode = GameMode.SELECTING_TARGET
 
@@ -79,15 +84,35 @@ class Game:
                 self.target.append(i)
         self.mode = GameMode.AWAITING_CONFIRMATION
 
+
     def move_pieces(self):
         self.target.sort(key=lambda x: -x.column)
         free_target = [t for t in self.target if not t.content]
         for i in range(min(len(free_target), len(self.source))):
             free_target[i].content = self.source[i].content
             self.source[i].content = None
+
+        # TODO: Refactor - lots of duplication from code just above
+        source = [s for s in self.source if s.content]
+        free_target = [t for t in self.locations.all if isinstance(t, FloorLocation) and not t.content and t.player_id == 0]
+        free_target.sort(key=lambda x: x.column)
+        for i in range(min(len(free_target), len(source))):
+            free_target[i].content = source[i].content
+            self.source[i].content = None
+
+        if type(self.source[0]) == FactoryLocation:
+            centre_locations = self.locations.free_centre_locations()
+            factory_locations = self.locations.factory_locations_for_id(self.source[0].factory_id)
+            to_move_to_centre = [l for l in factory_locations if l.content]
+            for i, location in enumerate(to_move_to_centre):
+                centre_locations[i].content = location.content
+                location.content = None
+
+        # TODO: Move to separate function to reset mode?
         self.mode = GameMode.SELECTING_TILE
         self.source = []
         self.target = []
+
 
     def confirm_movement(self):
         self.move_pieces()

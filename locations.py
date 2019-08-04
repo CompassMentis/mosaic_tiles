@@ -234,6 +234,15 @@ class FloorLocation(Location):
         y += (Settings.area_height - Settings.tile_height * 1.9) * multiplier
         return x, y
 
+    # TODO: Refactor - duplicate of PatternLocation
+    @property
+    def image(self):
+        # TODO: Refactor - test for human player instead of using player_id == 0
+        if self.player_id == 0:
+            return self.content.tile_type.large_image
+
+        return self.content.tile_type.small_image
+
     def draw_extra(self):
         if self.player_id == 0:
             multiplier = Settings.player_area_multiplier
@@ -299,6 +308,14 @@ class Locations:
         self.generate_pattern_locations()
         self.generate_wall_locations()
         self.generate_floor_locations()
+
+    def free_centre_locations(self):
+        result = [l for l in self.all if isinstance(l, CentreLocation) and l.content is None]
+        result.sort(key=lambda x: x.cell_id)
+        return result
+
+    def factory_locations_for_id(self, factory_id):
+        return [l for l in self.all if type(l) == FactoryLocation and l.factory_id == factory_id]
 
     def generate_factory_locations(self):
         number_of_factories = {
