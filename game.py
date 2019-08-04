@@ -79,22 +79,15 @@ class Game:
                 self.target.append(i)
         self.mode = GameMode.AWAITING_CONFIRMATION
 
-    def get_movement_details(self):
-        source = []
-        target = []
-
-        for i in self.locations.all:
-            if i.selected:
-                if isinstance(i, FactoryLocation):
-                    source.append(i)
-                elif isinstance(i, PatternLocation):
-                    target.append(i)
-        return source, target
-
     def move_pieces(self):
-        source, target = self.get_movement_details()
-        print(source)
-        print(target)
+        self.target.sort(key=lambda x: -x.column)
+        free_target = [t for t in self.target if not t.content]
+        for i in range(min(len(free_target), len(self.source))):
+            free_target[i].content = self.source[i].content
+            self.source[i].content = None
+        self.mode = GameMode.SELECTING_TILE
+        self.source = []
+        self.target = []
 
     def confirm_movement(self):
         self.move_pieces()

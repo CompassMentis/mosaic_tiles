@@ -13,7 +13,6 @@ class Location:
         self.rect = pygame.Rect(x, y, width, height)
         self.content = None
         self.game = game
-        # self.selected = False
 
     @property
     def active(self):
@@ -32,6 +31,10 @@ class Location:
         return True
 
     @property
+    def image(self):
+        return self.content.tile_type.small_image
+
+    @property
     def border_colour(self):
         if self.active:
             return Settings.active_grid_colour
@@ -46,7 +49,7 @@ class Location:
 
     def draw(self):
         if self.content:
-            self.game.canvas.blit(self.content.image, self.rect)
+            self.game.canvas.blit(self.image, self.rect)
         self.draw_extra()
 
         pygame.draw.rect(
@@ -163,6 +166,14 @@ class PatternLocation(Location):
 
         return self.player_id == 0 and self.game.mode in [GameMode.SELECTING_TARGET, GameMode.AWAITING_CONFIRMATION]
 
+    @property
+    def image(self):
+        # TODO: Refactor - test for human player instead of using player_id == 0
+        if self.player_id == 0:
+            return self.content.tile_type.large_image
+
+        return self.content.tile_type.small_image
+
 
 class WallLocation(PatternLocation):
     def coordinates(self):
@@ -242,22 +253,26 @@ class ButtonLocation(Location):
     def __init__(self, game, x, y, width, height, text, action):
         super().__init__(game, x, y, width, height)
 
-        self.image = pygame.Surface(self.rect.size)
-        self.image.fill(Settings.active_grid_colour)
+        self._image = pygame.Surface(self.rect.size)
+        self._image.fill(Settings.active_grid_colour)
         self.action = action
 
         spacing = Settings.floor_tile_scores_spacing * Settings.player_area_multiplier
-        self.image.blit(
+        self._image.blit(
             game.button_font.render(text, True, pygame.Color('white')),
             (spacing, spacing)
         )
 
         pygame.draw.rect(
-            self.image,
+            self._image,
             pygame.Color('white'),
             (0, 0, self.rect.width, self.rect.height),
             Settings.grid_line_width
         )
+
+    @property
+    def image(self):
+        return self._image
 
     @property
     def can_click(self):

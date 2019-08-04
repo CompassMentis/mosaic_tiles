@@ -30,10 +30,10 @@ class Tile:
         self.x = None
         self.y = None
 
-    @property
-    def image(self):
-        return self.tile_type.small_image
-
+    # @property
+    # def image(self):
+    #     return self.tile_type.small_image
+    #
     @property
     def background_image(self):
         return self.tile_type.small_transparent_image
