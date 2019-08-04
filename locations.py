@@ -13,11 +13,15 @@ class Location:
         self.rect = pygame.Rect(x, y, width, height)
         self.content = None
         self.game = game
-        self.selected = False
+        # self.selected = False
 
     @property
     def active(self):
         return False
+
+    @property
+    def selected(self):
+        return self in self.game.selected
 
     @property
     def can_click(self):
@@ -26,10 +30,6 @@ class Location:
     @property
     def is_visible(self):
         return True
-
-    # @property
-    # def selected(self):
-    #     if isinstance(self, FactoryLocation) and self.player_id == self.game.factory_selected
 
     @property
     def border_colour(self):
