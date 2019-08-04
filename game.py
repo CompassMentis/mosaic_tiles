@@ -2,7 +2,7 @@ import pygame
 
 from players import Player
 from tiles import Tiles
-from locations import Locations, FactoryLocation, CentreLocation, PatternLocation
+from locations import Locations, FactoryLocation, CentreLocation, PatternLocation, ButtonLocation
 from buttons import Button
 from enums import GameMode
 from settings import Settings
@@ -32,7 +32,8 @@ class Game:
         y += (Settings.area_height - Settings.tile_height * 1.9) * multiplier
         height = Settings.tile_height * multiplier
 
-        self.confirmation_button = Button(self, x, y, width, height, 'Continue', 'confirm')
+        self.locations.all.append(ButtonLocation(self, x, y, width, height, 'Continue', 'confirm'))
+        # self.confirmation_button = Button(self, x, y, width, height, 'Continue', 'confirm')
 
     @property
     def number_of_players(self):
@@ -44,15 +45,15 @@ class Game:
     def draw(self):
         self.draw_background()
         self.locations.draw()
-        if self.mode == GameMode.AWAITING_CONFIRMATION:
-            # TODO: Move this into separate function/method?
-            pygame.draw.rect(
-                self.canvas,
-                Settings.active_grid_colour,
-                self.confirmation_button.rect,
-            )
-            self.canvas.blit(self.confirmation_button.image, self.confirmation_button.rect)
-
+        # if self.mode == GameMode.AWAITING_CONFIRMATION:
+        #     # TODO: Move this into separate function/method?
+        #     pygame.draw.rect(
+        #         self.canvas,
+        #         Settings.active_grid_colour,
+        #         self.confirmation_button.rect,
+        #     )
+        #     self.canvas.blit(self.confirmation_button.image, self.confirmation_button.rect)
+        #
         pygame.display.flip()
 
     # TODO: Move this into buttons.py?
@@ -123,5 +124,6 @@ class Game:
             self.select_target_row(location)
             return
 
-        if location is self.confirmation_button:
+        # if location is self.confirmation_button:
+        if isinstance(location, ButtonLocation) and location.action == 'confirm':
             self.move_pieces()

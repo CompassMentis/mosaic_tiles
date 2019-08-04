@@ -23,6 +23,10 @@ class Location:
     def can_click(self):
         return False
 
+    @property
+    def is_visible(self):
+        return True
+
     # @property
     # def selected(self):
     #     if isinstance(self, FactoryLocation) and self.player_id == self.game.factory_selected
@@ -44,9 +48,6 @@ class Location:
         if self.content:
             self.game.canvas.blit(self.content.image, self.rect)
         self.draw_extra()
-        # elif isinstance(location, WallLocation):
-        #     self.game.canvas.blit(location.background_image, location.rect)
-        # elif isinstance(location, FloorLocation):
 
         pygame.draw.rect(
             self.game.canvas,
@@ -98,7 +99,6 @@ class FactoryLocation(Location):
     @property
     def active(self):
         return self.can_click and self.game.mode is GameMode.SELECTING_TILE
-        # return self.game.mode is GameMode.SELECTING_TILE and self.content
 
     @property
     def can_click(self):
@@ -238,6 +238,42 @@ class FloorLocation(Location):
             )
         )
 
+class ButtonLocation(Location):
+    def __init__(self, game, x, y, width, height, text, action):
+        super().__init__(game, x, y, width, height)
+
+        self.image = pygame.Surface(self.rect.size)
+        self.image.fill(Settings.active_grid_colour)
+        self.action = action
+
+        spacing = Settings.floor_tile_scores_spacing * Settings.player_area_multiplier
+        self.image.blit(
+            game.button_font.render(text, True, pygame.Color('white')),
+            (spacing, spacing)
+        )
+
+        pygame.draw.rect(
+            self.image,
+            pygame.Color('white'),
+            (0, 0, self.rect.width, self.rect.height),
+            Settings.grid_line_width
+        )
+
+    @property
+    def can_click(self):
+        return self.game.mode is GameMode.AWAITING_CONFIRMATION
+
+    @property
+    def is_visible(self):
+        return self.can_click
+
+    def draw(self):
+        pygame.draw.rect(
+            self.game.canvas,
+            Settings.active_grid_colour,
+            self.rect,
+        )
+        self.game.canvas.blit(self.image, self.rect)
 
 class Locations:
     def __init__(self, game):
@@ -293,4 +329,5 @@ class Locations:
 
     def draw(self):
         for location in self.all:
-            location.draw()
+            if location.is_visible:
+                location.draw()
