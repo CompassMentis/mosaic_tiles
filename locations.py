@@ -37,6 +37,24 @@ class Location:
 
         return Settings.grid_colour
 
+    def draw_extra(self):
+        pass
+
+    def draw(self):
+        if self.content:
+            self.game.canvas.blit(self.content.image, self.rect)
+        self.draw_extra()
+        # elif isinstance(location, WallLocation):
+        #     self.game.canvas.blit(location.background_image, location.rect)
+        # elif isinstance(location, FloorLocation):
+
+        pygame.draw.rect(
+            self.game.canvas,
+            self.border_colour,
+            self.rect,
+            Settings.grid_line_width
+        )
+
 
 class FactoryLocation(Location):
     cells_per_row = 2
@@ -174,6 +192,9 @@ class WallLocation(PatternLocation):
     def can_click(self):
         return False
 
+    def draw_extra(self):
+        self.game.canvas.blit(self.background_image, self.rect)
+
 
 class FloorLocation(Location):
     def __init__(self, game, player_id, column, score):
@@ -201,6 +222,21 @@ class FloorLocation(Location):
         x += self.column * Settings.tile_width * multiplier
         y += (Settings.area_height - Settings.tile_height * 1.9) * multiplier
         return x, y
+
+    def draw_extra(self):
+        if self.player_id == 0:
+            multiplier = Settings.player_area_multiplier
+            font = self.game.large_floor_tile_scores_font
+        else:
+            multiplier = 1
+            font = self.game.small_floor_tile_scores_font
+        self.game.canvas.blit(
+            font.render(str(self.score), True, Settings.floor_tile_scores_colour),
+            (
+                self.rect.x + Settings.floor_tile_scores_spacing * multiplier,
+                self.rect.y + Settings.floor_tile_scores_spacing * multiplier
+            )
+        )
 
 
 class Locations:
@@ -252,35 +288,9 @@ class Locations:
                 continue
             # TODO: Probably proper method of rect to check this
             if within_rect(x, y, location.rect):
-                    # location.rect.x <= x <= location.rect.x + location.rect.width and \
-                    # location.rect.y <= y <= location.rect.y + location.rect.height:
                 return location
         return None
 
     def draw(self):
         for location in self.all:
-            if location.content:
-                self.game.canvas.blit(location.content.image, location.rect)
-            elif isinstance(location, WallLocation):
-                self.game.canvas.blit(location.background_image, location.rect)
-            elif isinstance(location, FloorLocation):
-                if location.player_id == 0:
-                    multiplier = Settings.player_area_multiplier
-                    font = self.game.large_floor_tile_scores_font
-                else:
-                    multiplier = 1
-                    font = self.game.small_floor_tile_scores_font
-                self.game.canvas.blit(
-                    font.render(str(location.score), True, Settings.floor_tile_scores_colour),
-                    (
-                        location.rect.x + Settings.floor_tile_scores_spacing * multiplier,
-                        location.rect.y + Settings.floor_tile_scores_spacing * multiplier
-                    )
-                )
-
-            pygame.draw.rect(
-                self.game.canvas,
-                location.border_colour,
-                location.rect,
-                Settings.grid_line_width
-            )
+            location.draw()
