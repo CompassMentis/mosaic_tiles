@@ -53,6 +53,13 @@ class Game:
         pygame.display.flip()
 
     @property
+    def selected_type(self):
+        if not self.source:
+            return None
+
+        return self.source[0].content.tile_type
+
+    @property
     def clicked_location(self):
         result = self.locations.find(*pygame.mouse.get_pos())
         if result is not None:
@@ -84,6 +91,14 @@ class Game:
                 self.target.append(i)
         self.mode = GameMode.AWAITING_CONFIRMATION
 
+    def sort_centre(self):
+        centre_locations = self.locations.centre_locations
+        centre_pieces = [l.content for l in centre_locations if l.content is not None]
+        centre_pieces.sort(key=lambda x: x.tile_type.colour)
+        for location in centre_locations:
+            location.content = None
+        for i in range(len(centre_pieces)):
+            centre_locations[i].content = centre_pieces[i]
 
     def move_pieces(self):
         self.target.sort(key=lambda x: -x.column)
@@ -98,7 +113,7 @@ class Game:
         free_target.sort(key=lambda x: x.column)
         for i in range(min(len(free_target), len(source))):
             free_target[i].content = source[i].content
-            self.source[i].content = None
+            source[i].content = None
 
         if type(self.source[0]) == FactoryLocation:
             centre_locations = self.locations.free_centre_locations()
@@ -107,6 +122,8 @@ class Game:
             for i, location in enumerate(to_move_to_centre):
                 centre_locations[i].content = location.content
                 location.content = None
+            if to_move_to_centre:
+                self.sort_centre()
 
         # TODO: Move to separate function to reset mode?
         self.mode = GameMode.SELECTING_TILE

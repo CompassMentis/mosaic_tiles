@@ -164,7 +164,19 @@ class PatternLocation(Location):
         if self.selected:
             return False
 
-        return self.player_id == 0 and self.game.mode in [GameMode.SELECTING_TARGET, GameMode.AWAITING_CONFIRMATION]
+        if not(self.player_id == 0 and self.game.mode in [GameMode.SELECTING_TARGET, GameMode.AWAITING_CONFIRMATION]):
+            return False
+
+        if self.content:
+            return False
+
+        source_tile_type = self.game.selected_type
+        if source_tile_type is None:
+            return True
+
+        row_tile_type = self.game.locations.tile_type_for_patternlocation_player_row(0, self.row)
+
+        return row_tile_type in [None, source_tile_type]
 
     @property
     def image(self):
@@ -309,6 +321,10 @@ class Locations:
         self.generate_wall_locations()
         self.generate_floor_locations()
 
+    @property
+    def centre_locations(self):
+        return [l for l in self.all if isinstance(l, CentreLocation)]
+
     def free_centre_locations(self):
         result = [l for l in self.all if isinstance(l, CentreLocation) and l.content is None]
         result.sort(key=lambda x: x.cell_id)
@@ -316,6 +332,17 @@ class Locations:
 
     def factory_locations_for_id(self, factory_id):
         return [l for l in self.all if type(l) == FactoryLocation and l.factory_id == factory_id]
+
+    def pattern_locations_for_player_id(self, player_id):
+        return [l for l in self.all if type(l) == PatternLocation and l.player_id == player_id]
+
+    def tile_type_for_patternlocation_player_row(self, player_id, row):
+        locations = self.pattern_locations_for_player_id(player_id)
+        row_locations = [l for l in locations if l.row == row]
+        for l in row_locations:
+            if l.content:
+                return l.content.tile_type
+        return None
 
     def generate_factory_locations(self):
         number_of_factories = {
