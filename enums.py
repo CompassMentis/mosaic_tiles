@@ -1,9 +1,10 @@
 from enum import Enum
 
-
+# TOODO: Rename this - too close to 'location'
 class Location(Enum):
     DISCARD_PILE = 1
     BAG = 2
+    IN_PLAY = 3
 
 
 class GameMode(Enum):

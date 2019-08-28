@@ -25,3 +25,5 @@ while not done:
             done = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             game.process_mouse_click()
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
+            game.score()

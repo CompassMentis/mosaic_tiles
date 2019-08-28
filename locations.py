@@ -8,11 +8,15 @@ from enums import GameMode
 from utils import within_rect
 
 
+# TODO: Refactor - make database with .filter(player_id=None, location_type=None, is_empty=None, etc)
 class Location:
     def __init__(self, game, x, y, width=Settings.tile_width, height=Settings.tile_height):
         self.rect = pygame.Rect(x, y, width, height)
         self.content = None
         self.game = game
+
+    def __str__(self):
+        return('<Location>(tile={})'.format('<none>' if not self.content else self.content.tile_type.colour))
 
     @property
     def active(self):
@@ -132,7 +136,7 @@ class PatternLocation(Location):
         self.player_id = player_id
         self.row = row
         self.column = column
-        # TODO: Derive pattern from enum value
+        # TODO: Derive pattern from enum value - and move this to WallLocation??
         self.tile_type = tile_types[(self.column - self.row) % 5]
 
         x, y = self.coordinates()
@@ -311,6 +315,7 @@ class ButtonLocation(Location):
         )
         self.game.canvas.blit(self.image, self.rect)
 
+
 class Locations:
     def __init__(self, game):
         self.all = []
@@ -330,11 +335,22 @@ class Locations:
         result.sort(key=lambda x: x.cell_id)
         return result
 
+    @property
+    def factory_locations(self):
+        return [l for l in self.all if type(l) == FactoryLocation]
+
+    @property
+    def floor_locations(self):
+        return [l for l in self.all if type(l) == FloorLocation]
+
     def factory_locations_for_id(self, factory_id):
         return [l for l in self.all if type(l) == FactoryLocation and l.factory_id == factory_id]
 
     def pattern_locations_for_player_id(self, player_id):
         return [l for l in self.all if type(l) == PatternLocation and l.player_id == player_id]
+
+    def wall_locations_for_player_id(self, player_id):
+        return [l for l in self.all if type(l) == WallLocation and l.player_id == player_id]
 
     def tile_type_for_patternlocation_player_row(self, player_id, row):
         locations = self.pattern_locations_for_player_id(player_id)

@@ -23,6 +23,9 @@ class TileType:
         self.large_transparent_image = self.large_image.convert()
         self.large_transparent_image.set_alpha(128)
 
+    def __str__(self):
+        return '<TileType>(colour={})'.format(self.colour)
+
 class Tile:
     def __init__(self, tile_type):
         self.tile_type = tile_type
@@ -62,11 +65,15 @@ class Tiles:
         return self.tiles_at_location(Location.DISCARD_PILE)
 
     def random_tile(self):
-        if self.tiles_in_bag:
-            return choice(self.tiles_in_bag)
+        if not self.tiles_in_bag:
+            for tile in self.all:
+                if tile.location == Location.DISCARD_PILE:
+                    tile.location = Location.BAG
 
-        if self.tiles_in_discard_pile:
-            return choice(self.tiles_in_discard_pile)
+        if self.tiles_in_bag:
+            tile = choice(self.tiles_in_bag)
+            tile.location = Location.DISCARD_PILE
+            return tile
 
         return None
 

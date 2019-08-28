@@ -3,7 +3,7 @@ import pygame
 from players import Player
 from tiles import Tiles
 from locations import Locations, FactoryLocation, CentreLocation, PatternLocation, ButtonLocation, FloorLocation
-from enums import GameMode
+from enums import GameMode, Location
 from settings import Settings
 from utils import within_rect
 
@@ -47,9 +47,14 @@ class Game:
     def draw_background(self):
         self.canvas.fill((0, 0, 0))
 
+    def show_scores(self):
+        for player in self.players:
+            player.show_score(self)
+
     def draw(self):
         self.draw_background()
         self.locations.draw()
+        self.show_scores()
         pygame.display.flip()
 
     @property
@@ -82,7 +87,6 @@ class Game:
         self.mode = GameMode.SELECTING_TARGET
 
     def select_target_row(self, location):
-        print('select target row')
         self.target = []
         for i in self.locations.all:
             if type(i) is not PatternLocation or i.player_id is not 0:
@@ -130,7 +134,6 @@ class Game:
         self.source = []
         self.target = []
 
-
     def confirm_movement(self):
         self.move_pieces()
 
@@ -149,3 +152,32 @@ class Game:
 
         if isinstance(location, ButtonLocation) and location.action == 'confirm':
             self.move_pieces()
+
+    def new_tiles(self):
+        for location in self.locations.factory_locations:
+            if not location.content:
+                location.content = self.tiles.random_tile()
+
+    def score(self):
+        for player in self.players:
+            pattern_locations = self.locations.pattern_locations_for_player_id(player.order)
+            wall_locations = self.locations.wall_locations_for_player_id(player.order)
+            for row in range(5):
+                source_locations = [l for l in pattern_locations if l.row == row and l.content]
+                if len(source_locations) != row + 1:
+                    continue
+
+                tile_type = source_locations[0].content.tile_type
+                target_location = [l for l in wall_locations if l.row == row and l.tile_type == tile_type][0]
+                target_location.content = source_locations[0].content
+                source_locations[0].content = None
+                for location in source_locations[1:]:
+                    location.content.location = Location.DISCARD_PILE
+                    location.content = None
+
+        for location in self.locations.floor_locations:
+            if location.content:
+                location.content.location = Location.DISCARD_PILE
+                location.content = None
+
+        self.new_tiles()
