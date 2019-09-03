@@ -2,10 +2,9 @@ import pygame
 
 from players import Player
 from tiles import Tiles
-from locations import Locations, FactoryLocation, CentreLocation, PatternLocation, ButtonLocation, FloorLocation
+from locations import Locations, FactoryLocation, CentreLocation, PatternLocation, ButtonLocation, FloorLocation, WallLocation
 from enums import GameMode, Location
 from settings import Settings
-from utils import within_rect
 
 
 class Game:
@@ -96,7 +95,7 @@ class Game:
         self.mode = GameMode.AWAITING_CONFIRMATION
 
     def sort_centre(self):
-        centre_locations = self.locations.centre_locations
+        centre_locations = self.locations.filter(location_type=CentreLocation)
         centre_pieces = [l.content for l in centre_locations if l.content is not None]
         centre_pieces.sort(key=lambda x: x.tile_type.colour)
         for location in centre_locations:
@@ -120,8 +119,8 @@ class Game:
             source[i].content = None
 
         if type(self.source[0]) == FactoryLocation:
-            centre_locations = self.locations.free_centre_locations()
-            factory_locations = self.locations.factory_locations_for_id(self.source[0].factory_id)
+            centre_locations = self.locations.filter(location_type=CentreLocation, is_free=True, sort_by='cell_id')
+            factory_locations = self.locations.filter(location_type=FactoryLocation, factory_id=self.source[0].factory_id)
             to_move_to_centre = [l for l in factory_locations if l.content]
             for i, location in enumerate(to_move_to_centre):
                 centre_locations[i].content = location.content
@@ -154,14 +153,36 @@ class Game:
             self.move_pieces()
 
     def new_tiles(self):
-        for location in self.locations.factory_locations:
+        for location in self.locations.filter(location_type=FactoryLocation):
             if not location.content:
                 location.content = self.tiles.random_tile()
 
+    def points_for_range(self, h_range, v_range):
+        result = 0
+        for x in h_range:
+            for y in v_range:
+                if self.locations.filter(location_type=WallLocation, column=x, row=y)[0].content is None:
+                    return result
+                result += 1
+        return result
+
+    def points_for_wall_location(self, location):
+        h_points = self.points_for_range(range(location.column - 1, -1, -1), [location.row]) + \
+                   self.points_for_range(range(location.column + 1, 5), [location.row])
+        if h_points:
+            h_points += 1
+        v_points = self.points_for_range([location.column], range(location.row - 1, -1, -1)) + \
+                   self.points_for_range([location.column], range(location.row + 1, 5))
+        if v_points:
+            v_points += 1
+        result = max(1, h_points + v_points)
+        # print(location.column, location.row, h_points, v_points)
+        return result
+
     def score(self):
         for player in self.players:
-            pattern_locations = self.locations.pattern_locations_for_player_id(player.order)
-            wall_locations = self.locations.wall_locations_for_player_id(player.order)
+            pattern_locations = self.locations.filter(location_type=PatternLocation, player_id=player.order)
+            wall_locations = self.locations.filter(location_type=WallLocation, player_id=player.order)
             for row in range(5):
                 source_locations = [l for l in pattern_locations if l.row == row and l.content]
                 if len(source_locations) != row + 1:
@@ -169,13 +190,14 @@ class Game:
 
                 tile_type = source_locations[0].content.tile_type
                 target_location = [l for l in wall_locations if l.row == row and l.tile_type == tile_type][0]
+                player.points += self.points_for_wall_location(target_location)
                 target_location.content = source_locations[0].content
                 source_locations[0].content = None
                 for location in source_locations[1:]:
                     location.content.location = Location.DISCARD_PILE
                     location.content = None
 
-        for location in self.locations.floor_locations:
+        for location in self.locations.filter(location_type=FloorLocation):
             if location.content:
                 location.content.location = Location.DISCARD_PILE
                 location.content = None

@@ -16,7 +16,7 @@ class Location:
         self.game = game
 
     def __str__(self):
-        return('<Location>(tile={})'.format('<none>' if not self.content else self.content.tile_type.colour))
+        return '<Location>(tile={})'.format('<none>' if not self.content else self.content.tile_type.colour)
 
     @property
     def active(self):
@@ -274,6 +274,7 @@ class FloorLocation(Location):
             )
         )
 
+
 class ButtonLocation(Location):
     def __init__(self, game, x, y, width, height, text, action):
         super().__init__(game, x, y, width, height)
@@ -326,34 +327,39 @@ class Locations:
         self.generate_wall_locations()
         self.generate_floor_locations()
 
-    @property
-    def centre_locations(self):
-        return [l for l in self.all if isinstance(l, CentreLocation)]
+    def filter(self, location_type=None, is_free=None, factory_id=None,
+               player_id=None, sort_by=None, row=None, column=None):
+        result = self.all[:]
 
-    def free_centre_locations(self):
-        result = [l for l in self.all if isinstance(l, CentreLocation) and l.content is None]
-        result.sort(key=lambda x: x.cell_id)
+        if location_type is not None:
+            result = [l for l in result if type(l) == location_type]
+
+        if is_free is not None:
+            result = [l for l in result if l.content is None]
+
+        if factory_id is not None:
+            result = [l for l in result if l.factory_id == factory_id]
+
+        if player_id is not None:
+            result = [l for l in result if l.player_id == player_id]
+
+        if row is not None:
+            result = [l for l in result if l.row == row]
+
+        if column is not None:
+            result = [l for l in result if l.column == column]
+
+        if sort_by is not None:
+            if sort_by == 'cell_id':
+                result.sort(key=lambda x: x.cell_id)
+            else:
+                # TODO: Tidy this
+                raise KeyError
+
         return result
 
-    @property
-    def factory_locations(self):
-        return [l for l in self.all if type(l) == FactoryLocation]
-
-    @property
-    def floor_locations(self):
-        return [l for l in self.all if type(l) == FloorLocation]
-
-    def factory_locations_for_id(self, factory_id):
-        return [l for l in self.all if type(l) == FactoryLocation and l.factory_id == factory_id]
-
-    def pattern_locations_for_player_id(self, player_id):
-        return [l for l in self.all if type(l) == PatternLocation and l.player_id == player_id]
-
-    def wall_locations_for_player_id(self, player_id):
-        return [l for l in self.all if type(l) == WallLocation and l.player_id == player_id]
-
     def tile_type_for_patternlocation_player_row(self, player_id, row):
-        locations = self.pattern_locations_for_player_id(player_id)
+        locations = self.filter(location_type=PatternLocation, player_id=player_id)
         row_locations = [l for l in locations if l.row == row]
         for l in row_locations:
             if l.content:

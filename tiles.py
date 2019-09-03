@@ -19,12 +19,13 @@ class TileType:
             )
         )
         self.small_transparent_image = self.small_image.convert()
-        self.small_transparent_image.set_alpha(128)
+        self.small_transparent_image.set_alpha(80)
         self.large_transparent_image = self.large_image.convert()
-        self.large_transparent_image.set_alpha(128)
+        self.large_transparent_image.set_alpha(80)
 
     def __str__(self):
         return '<TileType>(colour={})'.format(self.colour)
+
 
 class Tile:
     def __init__(self, tile_type):
@@ -33,10 +34,6 @@ class Tile:
         self.x = None
         self.y = None
 
-    # @property
-    # def image(self):
-    #     return self.tile_type.small_image
-    #
     @property
     def background_image(self):
         return self.tile_type.small_transparent_image
